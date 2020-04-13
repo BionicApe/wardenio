@@ -6,13 +6,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Date;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.konado.wardenio.ISODateAdapter;
 import com.konado.wardenio.WardenioUtils;
 import com.konado.wardenio.dao.CustomerDao;
 import com.konado.wardenio.dao.EventDao;
@@ -23,16 +26,16 @@ import com.konado.wardenio.model.ExamTaken;
 import com.konado.wardenio.requests.GetExamTakenRequest;
 import com.konado.wardenio.responses.GetExamTakenResponse;
 
+
 public class GetExamTakenFunction implements RequestStreamHandler {
 
 	private static CustomerDao customerDao = new CustomerDao();
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
 	private static EventDao eventDao = new EventDao();
-	private static final Gson gson = new Gson();
+	private static final Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new ISODateAdapter()).create();
 
-	
-    @Override
-    public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
+	@Override
+	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
 		LambdaLogger logger = context.getLogger();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		JsonObject responseBody = new JsonObject();
@@ -52,7 +55,7 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 			if (examTaken == null) {
 				throw new Exception("ExamTaken not found");
 			}
-				
+
 			Event event = eventDao.get(examTaken.getEventId());
 			if (event == null) {
 				throw new Exception("Event not found");
@@ -67,7 +70,7 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 			response.setBucketName(examTaken.getBucketName());
 			response.setStreamName(examTaken.getStreamName());
 			response.setStartDate(examTaken.getStartDate());
-			response.setExamData(examTaken.getExamData());			
+			response.setExamData(examTaken.getExamData());
 			responseBody.add("response", gson.toJsonTree(response));
 
 		} catch (Exception e) {

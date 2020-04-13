@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Date;
 import java.util.List;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -17,6 +18,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.konado.wardenio.ISODateAdapter;
 import com.konado.wardenio.WardenioUtils;
 import com.konado.wardenio.dao.CustomerDao;
 import com.konado.wardenio.dao.EventDao;
@@ -42,7 +44,7 @@ public class ListExamsTakenFunction implements RequestStreamHandler {
 			return "examData".equals(field.getName());
 		}
 	};
-	private static final Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+	private static final Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).registerTypeAdapter(Date.class, new ISODateAdapter()).create();
 
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {

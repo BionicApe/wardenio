@@ -7,7 +7,7 @@ public class StartExamResponse {
 		private int width = 1280;
 		private int height = 720;
 		private int bitrate = 2000;
-		private int framerate = 20;
+		private int framerate = 30;
 		private int lifespanHours = 8760;
 
 		public int getWidth() {
