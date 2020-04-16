@@ -12,6 +12,8 @@ public class CreatePinForExamRequest {
 
 	private String examData;
 
+	private String studentCode;
+
 	public String getCustomerPassword() {
 		return customerPassword;
 	}
@@ -51,4 +53,13 @@ public class CreatePinForExamRequest {
 	public void setExamData(String examData) {
 		this.examData = examData;
 	}
+
+	public String getStudentCode() {
+		return studentCode;
+	}
+
+	public void setStudentCode(String studentCode) {
+		this.studentCode = studentCode;
+	}
+
 }

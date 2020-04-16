@@ -13,8 +13,10 @@ public class ExamTaken {
 	private Long eventId;
 	private String accessPin;
 	private String studentName;
+	private String studentCode;
 	private String bucketName;
 	private String streamName;
+	private String desktopStreamName;
 	private Date startDate;
 
 	public Long getId() {
@@ -85,4 +87,19 @@ public class ExamTaken {
 		this.startDate = startDate;
 	}
 
+	public String getStudentCode() {
+		return studentCode;
+	}
+
+	public void setStudentCode(String studentCode) {
+		this.studentCode = studentCode;
+	}
+
+	public String getDesktopStreamName() {
+		return desktopStreamName;
+	}
+
+	public void setDesktopStreamName(String desktopStreamName) {
+		this.desktopStreamName = desktopStreamName;
+	}
 }

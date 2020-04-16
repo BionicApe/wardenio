@@ -56,7 +56,7 @@ public class CreatePinForExamFunction implements RequestStreamHandler {
 				throw new Exception("This event does not belong to the customer");
 			}
 
-			ExamTaken examTaken = examTakenDao.CreateNewExamTaken(event, request.getStudentName(), request.getExamData());
+			ExamTaken examTaken = examTakenDao.createNewExamTaken(event, request.getStudentName(), request.getExamData(), request.getStudentCode());
 			if (examTaken == null) {
 				throw new Exception("ExamTaken could not be created");
 			}

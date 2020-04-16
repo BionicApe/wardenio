@@ -1,13 +1,15 @@
 package com.konado.wardenio.responses;
 
+import com.konado.wardenio.model.ExamTaken;
+
 public class StartExamResponse {
 
 	public class VideoSettings {
 
 		private int width = 1280;
 		private int height = 720;
-		private int bitrate = 2000;
-		private int framerate = 30;
+		private int bitrate = 1500;
+		private int framerate = 25;
 		private int lifespanHours = 8760;
 
 		public int getWidth() {
@@ -54,9 +56,13 @@ public class StartExamResponse {
 
 	private String studentName;
 
+	private String studentCode;
+
 	private String bucketName;
 
 	private String streamName;
+
+	private String desktopStreamName;
 
 	private String accessKeyId;
 
@@ -125,4 +131,34 @@ public class StartExamResponse {
 	public void setVideoSettings(VideoSettings videoSettings) {
 		this.videoSettings = videoSettings;
 	}
+
+	public String getStudentCode() {
+		return studentCode;
+	}
+
+	public void setStudentCode(String studentCode) {
+		this.studentCode = studentCode;
+	}
+
+	public String getDesktopStreamName() {
+		return desktopStreamName;
+	}
+
+	public void setDesktopStreamName(String desktopStreamName) {
+		this.desktopStreamName = desktopStreamName;
+	}
+
+	public void setValuesFromExamTaken(ExamTaken examTaken) {
+
+		studentName = examTaken.getStudentName();
+
+		studentCode = examTaken.getStudentCode();
+
+		bucketName = examTaken.getBucketName();
+
+		streamName = examTaken.getStreamName();
+
+		desktopStreamName = examTaken.getDesktopStreamName();
+	}
+
 }

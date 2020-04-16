@@ -24,8 +24,6 @@ import com.konado.wardenio.model.Customer;
 import com.konado.wardenio.model.Event;
 import com.konado.wardenio.model.ExamTaken;
 import com.konado.wardenio.requests.GetExamTakenRequest;
-import com.konado.wardenio.responses.GetExamTakenResponse;
-
 
 public class GetExamTakenFunction implements RequestStreamHandler {
 
@@ -64,14 +62,7 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 				throw new Exception("This event does not belong to the customer");
 			}
 
-			GetExamTakenResponse response = new GetExamTakenResponse();
-			response.setExamTakenId(examTaken.getId());
-			response.setStudentName(examTaken.getStudentName());
-			response.setBucketName(examTaken.getBucketName());
-			response.setStreamName(examTaken.getStreamName());
-			response.setStartDate(examTaken.getStartDate());
-			response.setExamData(examTaken.getExamData());
-			responseBody.add("response", gson.toJsonTree(response));
+			responseBody.add("response", gson.toJsonTree(examTaken));
 
 		} catch (Exception e) {
 			logger.log(e.getMessage());

@@ -62,12 +62,9 @@ public class StartExamFunction implements RequestStreamHandler {
 				Customer customer = customerDao.get(event.getCustomerId());
 				S3Utils.createAndSetBucket(customer, examTaken);
 				KinesisUitils.createAndSetStreamName(customer,examTaken);
-		
 				examTakenDao.updateStartExam(examTaken);				
 			}
-			response.setStudentName(examTaken.getStudentName());
-			response.setBucketName(examTaken.getBucketName());
-			response.setStreamName(examTaken.getStreamName());
+			response.setValuesFromExamTaken(examTaken);
 			responseBody.add("response", gson.toJsonTree(response));
 
 		} catch (Throwable e) {

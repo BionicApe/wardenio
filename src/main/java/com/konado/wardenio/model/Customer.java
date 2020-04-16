@@ -12,6 +12,8 @@ public class Customer {
 
 	private String streamName;
 
+	private String desktopStreamName;
+
 	public Customer() {
 		super();
 	}
@@ -54,6 +56,14 @@ public class Customer {
 
 	public void setStreamName(String streamName) {
 		this.streamName = streamName;
+	}
+
+	public String getDesktopStreamName() {
+		return desktopStreamName;
+	}
+
+	public void setDesktopStreamName(String desktopStreamName) {
+		this.desktopStreamName = desktopStreamName;
 	}
 
 }

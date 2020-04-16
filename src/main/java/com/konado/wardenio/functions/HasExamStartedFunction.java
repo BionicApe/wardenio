@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Date;
-import java.util.List;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
@@ -24,47 +23,40 @@ import com.konado.wardenio.dao.ExamTakenDao;
 import com.konado.wardenio.model.Customer;
 import com.konado.wardenio.model.Event;
 import com.konado.wardenio.model.ExamTaken;
-import com.konado.wardenio.requests.ListExamsTakenRequest;
-import com.konado.wardenio.responses.ListExamsTakenResponse;
+import com.konado.wardenio.requests.HasExamStartedRequest;
+import com.konado.wardenio.responses.HasExamStartedResponse;
 
-public class ListExamsTakenFunction implements RequestStreamHandler {
+public class HasExamStartedFunction implements RequestStreamHandler {
 
-	private static CustomerDao customerDao = new CustomerDao();
-	private static ExamTakenDao examTakenDao = new ExamTakenDao();
-	private static EventDao eventDao = new EventDao();
-//	private static ExclusionStrategy strategy = new ExclusionStrategy() {
-//		@Override
-//		public boolean shouldSkipClass(Class<?> clazz) {
-//			return false;
-//		}
-//
-//		@Override
-//		public boolean shouldSkipField(FieldAttributes field) {
-//			return "examData".equals(field.getName());
-//		}
-//	};
-	private static final Gson gson = new GsonBuilder().
-//			addSerializationExclusionStrategy(strategy).
-			registerTypeAdapter(Date.class, new ISODateAdapter()).create();
+	private static final CustomerDao customerDao = new CustomerDao();
+	private static final ExamTakenDao examTakenDao = new ExamTakenDao();
+	private static final EventDao eventDao = new EventDao();
+	private static final Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new ISODateAdapter()).create();
 
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
+
 		LambdaLogger logger = context.getLogger();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		JsonObject responseBody = new JsonObject();
+		OutputStreamWriter writer = new OutputStreamWriter(output, "UTF-8");
 
 		try {
-
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
+			HasExamStartedRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), HasExamStartedRequest.class);
 
-			ListExamsTakenRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), ListExamsTakenRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 			if (customer == null) {
 				throw new Exception("Customer not found");
 			}
 
-			Event event = eventDao.get(request.getEventId());
+			ExamTaken examTaken = examTakenDao.get(request.getExamTakenId());
+			if (examTaken == null) {
+				throw new Exception("ExamTaken not found");
+			}
+
+			Event event = eventDao.get(examTaken.getEventId());
 			if (event == null) {
 				throw new Exception("Event not found");
 			}
@@ -72,24 +64,20 @@ public class ListExamsTakenFunction implements RequestStreamHandler {
 				throw new Exception("This event does not belong to the customer");
 			}
 
-			List<ExamTaken> resultBeans = examTakenDao.getAllByEventId(event.getId());
+			HasExamStartedResponse response = new HasExamStartedResponse();
+			response.setValuesFromExamTaken(examTaken);
 
-			ListExamsTakenResponse response = new ListExamsTakenResponse();
-			response.setEvent(event);
-			response.setExamsTakenList(resultBeans);
-			
 			responseBody.add("response", gson.toJsonTree(response));
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			logger.log(e.getMessage());
 			responseBody.addProperty("Exception", e.getMessage());
 			responseBody.addProperty("StackTrace", WardenioUtils.getStackTrace(e));
+			responseBody.addProperty("body", "{}");
+		} finally {
+			String responseStr = WardenioUtils.createSuccessfulResponse(responseBody);
+			writer.write(responseStr);
+			writer.close();
 		}
-
-		String responseStr = WardenioUtils.createSuccessfulResponse(responseBody);
-		OutputStreamWriter writer = new OutputStreamWriter(output, "UTF-8");
-		writer.write(responseStr);
-		writer.close();
 	}
-
 }
