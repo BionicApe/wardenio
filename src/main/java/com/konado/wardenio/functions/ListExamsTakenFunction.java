@@ -6,17 +6,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Date;
 import java.util.List;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.konado.wardenio.ISODateAdapter;
 import com.konado.wardenio.WardenioUtils;
 import com.konado.wardenio.dao.CustomerDao;
 import com.konado.wardenio.dao.EventDao;
@@ -32,20 +32,18 @@ public class ListExamsTakenFunction implements RequestStreamHandler {
 	private static CustomerDao customerDao = new CustomerDao();
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
 	private static EventDao eventDao = new EventDao();
-//	private static ExclusionStrategy strategy = new ExclusionStrategy() {
-//		@Override
-//		public boolean shouldSkipClass(Class<?> clazz) {
-//			return false;
-//		}
-//
-//		@Override
-//		public boolean shouldSkipField(FieldAttributes field) {
-//			return "examData".equals(field.getName());
-//		}
-//	};
-	private static final Gson gson = new GsonBuilder().
-//			addSerializationExclusionStrategy(strategy).
-			registerTypeAdapter(Date.class, new ISODateAdapter()).create();
+	private static ExclusionStrategy strategy = new ExclusionStrategy() {
+		@Override
+		public boolean shouldSkipClass(Class<?> clazz) {
+			return false;
+		}
+
+		@Override
+		public boolean shouldSkipField(FieldAttributes field) {
+			return "examTakenId".equals(field.getName());
+		}
+	};
+	private static final Gson GSON = new GsonBuilder().addSerializationExclusionStrategy(strategy).setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
 
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
@@ -57,7 +55,7 @@ public class ListExamsTakenFunction implements RequestStreamHandler {
 
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
 
-			ListExamsTakenRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), ListExamsTakenRequest.class);
+			ListExamsTakenRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), ListExamsTakenRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 			if (customer == null) {
@@ -78,7 +76,7 @@ public class ListExamsTakenFunction implements RequestStreamHandler {
 			response.setEvent(event);
 			response.setExamsTakenList(resultBeans);
 			
-			responseBody.add("response", gson.toJsonTree(response));
+			responseBody.add("response", GSON.toJsonTree(response));
 
 		} catch (Exception e) {
 			logger.log(e.getMessage());

@@ -6,16 +6,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Date;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.konado.wardenio.ISODateAdapter;
 import com.konado.wardenio.WardenioUtils;
 import com.konado.wardenio.dao.CustomerDao;
 import com.konado.wardenio.dao.EventDao;
@@ -31,7 +28,7 @@ public class HasExamStartedFunction implements RequestStreamHandler {
 	private static final CustomerDao customerDao = new CustomerDao();
 	private static final ExamTakenDao examTakenDao = new ExamTakenDao();
 	private static final EventDao eventDao = new EventDao();
-	private static final Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new ISODateAdapter()).create();
+	private static final Gson GSON = WardenioUtils.GSON;
 
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
@@ -43,7 +40,7 @@ public class HasExamStartedFunction implements RequestStreamHandler {
 
 		try {
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
-			HasExamStartedRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), HasExamStartedRequest.class);
+			HasExamStartedRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), HasExamStartedRequest.class);
 
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
@@ -67,7 +64,7 @@ public class HasExamStartedFunction implements RequestStreamHandler {
 			HasExamStartedResponse response = new HasExamStartedResponse();
 			response.setValuesFromExamTaken(examTaken);
 
-			responseBody.add("response", gson.toJsonTree(response));
+			responseBody.add("response", GSON.toJsonTree(response));
 
 		} catch (Throwable e) {
 			logger.log(e.getMessage());

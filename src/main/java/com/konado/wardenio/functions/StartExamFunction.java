@@ -28,7 +28,7 @@ import com.konado.wardenio.responses.StartExamResponse;
 public class StartExamFunction implements RequestStreamHandler {
 
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
-	private static final Gson gson = new Gson();
+	private static final Gson GSON = WardenioUtils.GSON;
 	private static CustomerDao customerDao = new CustomerDao();
 	private static EventDao eventDao = new EventDao();
 
@@ -65,7 +65,7 @@ public class StartExamFunction implements RequestStreamHandler {
 				examTakenDao.updateStartExam(examTaken);				
 			}
 			response.setValuesFromExamTaken(examTaken);
-			responseBody.add("response", gson.toJsonTree(response));
+			responseBody.add("response", GSON.toJsonTree(response));
 
 		} catch (Throwable e) {
 			logger.log(e.getMessage());

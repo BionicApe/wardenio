@@ -10,11 +10,35 @@ import java.util.List;
 
 import com.konado.wardenio.model.Event;
 import com.konado.wardenio.model.ExamTaken;
+import com.konado.wardenio.requests.SetDeviceStateRequest;
+import com.konado.wardenio.requests.SetExamDesktopStateRequest;
 
 public class ExamTakenDao implements Dao<ExamTaken> {
 
-	private static final String SELECT_COMMON = "SELECT id, event_id, access_pin, student_name, bucket_name, stream_name, start_date, student_code, exam_data, desktop_stream_name FROM exam_taken ";
-	static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(), desktop_stream_name = ? WHERE id=?";
+		
+//	private static final String GENERATE_PIN_STR = "UPDATE exam_taken SET access_pin =concat(" +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(@seed)*4294967296))*36+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(@seed)*4294967296))*36+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(@seed)*4294967296))*36+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed)*36+1, 1)" +
+//			") WHERE id=?";
+
+//	private static final String GENERATE_PIN_STR = "UPDATE exam_taken SET access_pin =concat(" +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', rand(@seed:=round(rand(?)*4294967296))*35+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', rand(@seed:=round(rand(@seed)*4294967296))*35+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', rand(@seed:=round(rand(@seed)*4294967296))*35+1, 1)," +
+//			"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', rand(@seed)*35+1, 1)" +
+//			") WHERE id=?";
+
+//	private static final String GENERATE_PIN_STR = "UPDATE exam_taken SET access_pin = GenerateUniqueAccessPin() WHERE id=?";
+
+	private static final String SELECT_COMMON = "SELECT id, event_id, access_pin, student_name, bucket_name, stream_name, start_date, student_code, exam_data, " +
+			"desktop_stream_name FROM exam_taken ";
+	private static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(3), desktop_stream_name = ? WHERE id=?";
+	private static final String UPDATE_DEVICE_STATE = "UPDATE exam_taken SET device_type = ?, device_model = ?, device_state = ? WHERE id=?";
+	private static final String UPDATE_DESKTOP_STATE = "UPDATE exam_taken SET desktop_type = ?, desktop_model = ?, desktop_state = ? WHERE id= ? ";
+	private static final String UPDATE_INVALIDATE_ALL = "UPDATE exam_taken SET access_pin = NULL WHERE event_id = ? ";
+	private static final DeviceStateDao deviceStateDao = new DeviceStateDao();
 
 	@Override
 	public ExamTaken get(long id) throws Exception {
@@ -31,15 +55,17 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 			if (stmt.execute()) {
 				ResultSet rs = stmt.getResultSet();
 				if (rs.next()) {
-					return createFromResultSet(rs);
+					ExamTaken examTaken = createFromResultSet(rs);
+					examTaken.setDeviceStates(deviceStateDao.getAllByExamTakenId(examTaken.getId()));
+					return examTaken;
 				}
 			}
+			return null;
 		} catch (Exception e) {
 			throw e;
 		} finally {
 			conn.close();
 		}
-		return null;
 	}
 
 	@Override
@@ -71,7 +97,7 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 
 			StringBuilder sb = new StringBuilder();
 			sb.append(SELECT_COMMON);
-			sb.append("where access_pin = ?;");
+			sb.append("where access_pin = ? ORDER BY id DESC;");
 
 			stmt = conn.prepareStatement(sb.toString());
 			stmt.setString(1, pin);
@@ -130,12 +156,11 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 			long generatedId = rs.getLong(1);
 
 			String generatePinStr = "UPDATE exam_taken SET access_pin =concat(" +
-					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(?)*4294967296))*36+1, 1)," +
-					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(@seed)*4294967296))*36+1, 1)," +
-					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed:=round(rand(@seed)*4294967296))*36+1, 1)," +
-					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', rand(@seed)*36+1, 1)" +
+					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890', rand(@seed:=round(rand(?)*4294967296))*35+1, 1)," +
+					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890', rand(@seed:=round(rand(@seed)*4294967296))*35+1, 1)," +
+					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890', rand(@seed:=round(rand(@seed)*4294967296))*35+1, 1)," +
+					"substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890', rand(@seed)*36+1, 1)" +
 					") WHERE id=?";
-
 			PreparedStatement stmt2 = conn.prepareStatement(generatePinStr);
 			stmt2.setLong(1, generatedId);
 			stmt2.setLong(2, generatedId);
@@ -169,7 +194,9 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 			stmt.execute();
 			ResultSet rs = stmt.getResultSet();
 			while (rs.next()) {
-				examTakenList.add(createFromResultSet(rs));
+				ExamTaken examTaken = createFromResultSet(rs);
+				examTaken.setDeviceStates(deviceStateDao.getAllByExamTakenId(examTaken.getId()));
+				examTakenList.add(examTaken);
 			}
 			return examTakenList;
 		} catch (Exception e) {
@@ -200,5 +227,71 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 		} finally {
 			conn.close();
 		}
+	}
+
+	public void updateDeviceState(SetDeviceStateRequest request) throws Exception {
+		ExamTaken examTaken = getByPin(request.getAccessPin());
+
+		Connection conn = DBConnection.getRemoteConnection();
+		try {
+
+			conn.setAutoCommit(false);
+
+			PreparedStatement stmt = conn.prepareStatement(UPDATE_DEVICE_STATE);
+			stmt.setString(1, request.getDeviceType());
+			stmt.setString(2, request.getDeviceModel());
+			stmt.setString(3, request.getDeviceState());
+			stmt.setLong(4, examTaken.getId());
+			stmt.execute();
+			conn.commit();
+		} catch (Exception e) {
+			conn.rollback();
+			throw e;
+		} finally {
+			conn.close();
+		}
+	}
+
+	public void updateDesktopState(SetExamDesktopStateRequest request) throws Exception {
+		
+		ExamTaken examTaken = getByPin(request.getAccessPin());
+		Connection conn = DBConnection.getRemoteConnection();
+		try {
+			
+			conn.setAutoCommit(false);
+			
+			PreparedStatement stmt = conn.prepareStatement(UPDATE_DESKTOP_STATE);
+			stmt.setString(1, request.getDesktopType());
+			stmt.setString(2, request.getDesktopModel());
+			stmt.setString(3, request.getDesktopState());
+			stmt.setLong(4, examTaken.getId());
+			stmt.execute();
+			conn.commit();
+		} catch (Exception e) {
+			conn.rollback();
+			throw e;
+		} finally {
+			conn.close();
+		}
+	}
+	
+	public void invalidateAll(Event event) throws Exception {
+
+		Connection conn = DBConnection.getRemoteConnection();
+		try {
+
+			conn.setAutoCommit(false);
+
+			PreparedStatement stmt = conn.prepareStatement(UPDATE_INVALIDATE_ALL);
+			stmt.setLong(1, event.getId());
+			stmt.execute();
+			conn.commit();
+		} catch (Exception e) {
+			conn.rollback();
+			throw e;
+		} finally {
+			conn.close();
+		}
+
 	}
 }

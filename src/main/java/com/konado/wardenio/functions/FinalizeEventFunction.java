@@ -19,10 +19,10 @@ import com.konado.wardenio.dao.EventDao;
 import com.konado.wardenio.dao.ExamTakenDao;
 import com.konado.wardenio.model.Customer;
 import com.konado.wardenio.model.Event;
-import com.konado.wardenio.model.ExamTaken;
-import com.konado.wardenio.requests.GetExamTakenRequest;
+import com.konado.wardenio.requests.FinalizeEventRequest;
+import com.konado.wardenio.responses.FinalizeEventResponse;
 
-public class GetExamTakenFunction implements RequestStreamHandler {
+public class FinalizeEventFunction implements RequestStreamHandler {
 
 	private static CustomerDao customerDao = new CustomerDao();
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
@@ -31,27 +31,24 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
+
 		LambdaLogger logger = context.getLogger();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		JsonObject responseBody = new JsonObject();
+		OutputStreamWriter writer = new OutputStreamWriter(output, "UTF-8");
+		String responseStr = "";
 
 		try {
 
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
-
-			GetExamTakenRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), GetExamTakenRequest.class);
+			FinalizeEventRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), FinalizeEventRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 			if (customer == null) {
 				throw new Exception("Customer not found");
 			}
 
-			ExamTaken examTaken = examTakenDao.get(request.getExamTakenId());
-			if (examTaken == null) {
-				throw new Exception("ExamTaken not found");
-			}
-
-			Event event = eventDao.get(examTaken.getEventId());
+			Event event = eventDao.get(request.getEventId());
 			if (event == null) {
 				throw new Exception("Event not found");
 			}
@@ -59,18 +56,17 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 				throw new Exception("This event does not belong to the customer");
 			}
 
-			responseBody.add("response", GSON.toJsonTree(examTaken));
-
-		} catch (Exception e) {
+			examTakenDao.invalidateAll(event);
+			
+			FinalizeEventResponse response = new FinalizeEventResponse();
+			responseBody.add("response", GSON.toJsonTree(response));
+			responseStr = WardenioUtils.createSuccessfulResponse(responseBody);
+		} catch (Throwable e) {
 			logger.log(e.getMessage());
-			responseBody.addProperty("Exception", e.getMessage());
-			responseBody.addProperty("StackTrace", WardenioUtils.getStackTrace(e));
+			responseStr = WardenioUtils.createUnsuccessfulResponse(responseBody, e);
+		} finally {
+			writer.write(responseStr);
+			writer.close();
 		}
-
-		String responseStr = WardenioUtils.createSuccessfulResponse(responseBody);
-		OutputStreamWriter writer = new OutputStreamWriter(output, "UTF-8");
-		writer.write(responseStr);
-		writer.close();
 	}
-
 }

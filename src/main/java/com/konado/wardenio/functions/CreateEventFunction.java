@@ -24,8 +24,8 @@ public class CreateEventFunction implements RequestStreamHandler {
 
 	private static CustomerDao customerDao = new CustomerDao();
 	private static EventDao eventDao = new EventDao();
-	private static final Gson gson = new Gson();
-
+	private static final Gson GSON = WardenioUtils.GSON;
+	
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
 
@@ -33,17 +33,12 @@ public class CreateEventFunction implements RequestStreamHandler {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		JsonObject responseBody = new JsonObject();
 
-//		String inputStr = reader.lines().collect(Collectors.joining("\n"));
-//		logger.log(inputStr);
-//		
-//		responseBody.addProperty("InputStream",inputStr);		
 		String responseStr = "Failure";
 		try {
 
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
-//			responseBody.addProperty("jsonRequest",jsonRequest.toString());			
 
-			CreateEventRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), CreateEventRequest.class);
+			CreateEventRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), CreateEventRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 
@@ -55,8 +50,7 @@ public class CreateEventFunction implements RequestStreamHandler {
 					CreateEventResponse response = new CreateEventResponse();
 					response.setEventId(eventId);
 					response.setEventData(request.getEventData());
-//					responseBody.addProperty("response", gson.toJson(response));
-					responseBody.add("response", gson.toJsonTree(response));
+					responseBody.add("response", GSON.toJsonTree(response));
 				} else {
 					throw new Exception("event not created");
 				}

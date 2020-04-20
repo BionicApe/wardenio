@@ -1,6 +1,7 @@
 package com.konado.wardenio.model;
 
 import java.util.Date;
+import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
 import com.mysql.cj.util.StringUtils;
@@ -18,6 +19,7 @@ public class ExamTaken {
 	private String streamName;
 	private String desktopStreamName;
 	private Date startDate;
+	private List<DeviceState> deviceStates;
 
 	public Long getId() {
 		return id;
@@ -102,4 +104,13 @@ public class ExamTaken {
 	public void setDesktopStreamName(String desktopStreamName) {
 		this.desktopStreamName = desktopStreamName;
 	}
+
+	public List<DeviceState> getDeviceStates() {
+		return deviceStates;
+	}
+
+	public void setDeviceStates(List<DeviceState> deviceStates) {
+		this.deviceStates = deviceStates;
+	}
+
 }

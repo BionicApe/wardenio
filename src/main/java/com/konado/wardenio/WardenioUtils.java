@@ -16,6 +16,8 @@ import com.konado.wardenio.model.Event;
 
 public class WardenioUtils {
 
+	public static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
+	
 	public static Event createEventFromJson(String json) {
 		Gson gson = new Gson();
 		return gson.fromJson(json, Event.class);
@@ -30,29 +32,24 @@ public class WardenioUtils {
 		responseJson.add("headers", headerJson);
 		responseJson.addProperty("body", responseBody.toString());
 
-//		JsonObject responseJson = new JsonObject();
-//		JsonObject headerJson = new JsonObject();
-//		headerJson.addProperty("x-Wardenio-header", "Success");
-//
-//		responseJson.addProperty("statusCode", 400);
-//		responseJson.add("headers", headerJson);
-//		responseJson.add("body", responseBody);
-//
-//		return responseJson.getAsString();
-
 		return responseJson.toString();
 	}
 
-	public static void createUnsuccessfulResponse(JsonObject responseJson) {
-		JsonObject responseBody = new JsonObject();
-		responseBody.addProperty("message", "Unsuccess");
-
+	public static String createUnsuccessfulResponse(JsonObject responseBody, Throwable e) {
+		
+		responseBody.addProperty("Exception", e.getMessage());
+		responseBody.addProperty("StackTrace", WardenioUtils.getStackTrace(e));
+		responseBody.addProperty("response", "");
+		
+		JsonObject responseJson = new JsonObject();
 		JsonObject headerJson = new JsonObject();
-		headerJson.addProperty("x-Wardenio-header", "Unsuccess");
+		headerJson.addProperty("x-Wardenio-header", "Success");
 
 		responseJson.addProperty("statusCode", 400);
 		responseJson.add("headers", headerJson);
-		responseJson.addProperty("body", responseBody.toString());
+		responseJson.addProperty("body", responseBody.toString());		
+
+		return responseJson.toString();
 	}
 
 	public static void debugEventContext(Map<String, String> event, Context context) {

@@ -70,7 +70,11 @@ public class StartExamResponse {
 
 	private String sessionToken;
 
+	private Long examTakenId;
+
 	private VideoSettings videoSettings = new VideoSettings();
+
+	private VideoSettings desktopVideoSettings = new VideoSettings();
 
 	public String getStudentName() {
 		return studentName;
@@ -128,6 +132,10 @@ public class StartExamResponse {
 		return videoSettings;
 	}
 
+	public VideoSettings getDesktopVideoSettings() {
+		return desktopVideoSettings;
+	}
+
 	public void setVideoSettings(VideoSettings videoSettings) {
 		this.videoSettings = videoSettings;
 	}
@@ -148,6 +156,14 @@ public class StartExamResponse {
 		this.desktopStreamName = desktopStreamName;
 	}
 
+	public Long getExamTakenId() {
+		return examTakenId;
+	}
+
+	public void setExamTakenId(Long examTakenId) {
+		this.examTakenId = examTakenId;
+	}
+
 	public void setValuesFromExamTaken(ExamTaken examTaken) {
 
 		studentName = examTaken.getStudentName();
@@ -159,6 +175,8 @@ public class StartExamResponse {
 		streamName = examTaken.getStreamName();
 
 		desktopStreamName = examTaken.getDesktopStreamName();
+
+		examTakenId = examTaken.getId();
 	}
 
 }

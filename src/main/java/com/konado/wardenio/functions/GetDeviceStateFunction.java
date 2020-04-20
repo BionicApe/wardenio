@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
@@ -15,18 +16,22 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.konado.wardenio.WardenioUtils;
 import com.konado.wardenio.dao.CustomerDao;
+import com.konado.wardenio.dao.DeviceStateDao;
 import com.konado.wardenio.dao.EventDao;
 import com.konado.wardenio.dao.ExamTakenDao;
 import com.konado.wardenio.model.Customer;
+import com.konado.wardenio.model.DeviceState;
 import com.konado.wardenio.model.Event;
 import com.konado.wardenio.model.ExamTaken;
-import com.konado.wardenio.requests.GetExamTakenRequest;
+import com.konado.wardenio.requests.GetDeviceStateRequest;
+import com.konado.wardenio.responses.GetDeviceStateResponse;
 
-public class GetExamTakenFunction implements RequestStreamHandler {
+public class GetDeviceStateFunction implements RequestStreamHandler {
 
 	private static CustomerDao customerDao = new CustomerDao();
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
 	private static EventDao eventDao = new EventDao();
+	private static DeviceStateDao stateDeviceDao = new DeviceStateDao();
 	private static final Gson GSON = WardenioUtils.GSON;
 
 	@Override
@@ -39,19 +44,18 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
 
-			GetExamTakenRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), GetExamTakenRequest.class);
+			GetDeviceStateRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), GetDeviceStateRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 			if (customer == null) {
 				throw new Exception("Customer not found");
 			}
-
 			ExamTaken examTaken = examTakenDao.get(request.getExamTakenId());
 			if (examTaken == null) {
-				throw new Exception("ExamTaken not found");
+				throw new Exception("Exam Taken not found: " +
+						request.getExamTakenId());
 			}
-
-			Event event = eventDao.get(examTaken.getEventId());
+			Event event = eventDao.get(examTaken.getId());
 			if (event == null) {
 				throw new Exception("Event not found");
 			}
@@ -59,7 +63,13 @@ public class GetExamTakenFunction implements RequestStreamHandler {
 				throw new Exception("This event does not belong to the customer");
 			}
 
-			responseBody.add("response", GSON.toJsonTree(examTaken));
+			List<DeviceState> resultBeans = stateDeviceDao.getAllByExamTakenId(examTaken.getId());
+
+			GetDeviceStateResponse response = new GetDeviceStateResponse();
+			response.setDeviceStateList(resultBeans);
+			response.setTimestamp(resultBeans.get(0).getTimestamp());
+
+			responseBody.add("response", GSON.toJsonTree(response));
 
 		} catch (Exception e) {
 			logger.log(e.getMessage());

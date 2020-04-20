@@ -28,8 +28,7 @@ public class CreatePinForExamFunction implements RequestStreamHandler {
 	private static CustomerDao customerDao = new CustomerDao();
 	private static ExamTakenDao examTakenDao = new ExamTakenDao();
 	private static EventDao eventDao = new EventDao();
-	private static final Gson gson = new Gson();
-
+	private static final Gson GSON = WardenioUtils.GSON;
 	@Override
 	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
 
@@ -41,7 +40,7 @@ public class CreatePinForExamFunction implements RequestStreamHandler {
 
 			JsonObject jsonRequest = (JsonObject) JsonParser.parseReader(reader);
 
-			CreatePinForExamRequest request = gson.fromJson((String) jsonRequest.get("body").getAsString(), CreatePinForExamRequest.class);
+			CreatePinForExamRequest request = GSON.fromJson((String) jsonRequest.get("body").getAsString(), CreatePinForExamRequest.class);
 
 			Customer customer = customerDao.GetByUsernameAndPassword(request.getCustomerUsername(), request.getCustomerPassword());
 			if (customer == null) {
@@ -65,7 +64,7 @@ public class CreatePinForExamFunction implements RequestStreamHandler {
 
 			response.setAccessPin(examTaken.getAccessPin());
 			response.setExamTakenId(examTaken.getId());
-			responseBody.add("response", gson.toJsonTree(response));
+			responseBody.add("response", GSON.toJsonTree(response));
 
 		} catch (Exception e) {
 			logger.log(e.getMessage());
