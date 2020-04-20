@@ -2,6 +2,7 @@ package com.konado.wardenio;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
@@ -16,7 +17,10 @@ import com.konado.wardenio.model.Event;
 
 public class WardenioUtils {
 
-	public static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
+	public static final Gson GSON = new GsonBuilder()
+//			.setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+			.registerTypeAdapter(Date.class, new ISODateAdapter())
+			.create();
 	
 	public static Event createEventFromJson(String json) {
 		Gson gson = new Gson();
