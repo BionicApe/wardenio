@@ -190,7 +190,7 @@ public class StartExamResponse {
 
 		desktopStreamName = examTaken.getDesktopStreamName();
 		
-		desktopBucketName = examTaken.getDesktopStreamName();
+		desktopBucketName = examTaken.getDesktopBucketName();
 
 		examTakenId = examTaken.getId();
 	}

@@ -33,8 +33,8 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 //	private static final String GENERATE_PIN_STR = "UPDATE exam_taken SET access_pin = GenerateUniqueAccessPin() WHERE id=?";
 
 	private static final String SELECT_COMMON = "SELECT id, event_id, access_pin, student_name, bucket_name, stream_name, start_date, student_code, exam_data, " +
-			"desktop_stream_name FROM exam_taken ";
-	private static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(3), desktop_stream_name = ? desktop_bucket_name = ? WHERE id=?";
+			"desktop_stream_name, desktop_bucket_name FROM exam_taken ";
+	private static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(3), desktop_stream_name = ?, desktop_bucket_name = ? WHERE id=?";
 	private static final String UPDATE_DEVICE_STATE = "UPDATE exam_taken SET device_type = ?, device_model = ?, device_state = ? WHERE id=?";
 	private static final String UPDATE_DESKTOP_STATE = "UPDATE exam_taken SET desktop_type = ?, desktop_model = ?, desktop_state = ? WHERE id= ? ";
 	private static final String UPDATE_INVALIDATE_ALL = "UPDATE exam_taken SET access_pin = NULL WHERE event_id = ? ";
@@ -129,6 +129,7 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 		examTaken.setStudentCode(rs.getString(8));
 		examTaken.setExamData(rs.getString(9));
 		examTaken.setDesktopStreamName(rs.getString(10));
+		examTaken.setDesktopBucketName(rs.getString(11));
 		return examTaken;
 	}
 
