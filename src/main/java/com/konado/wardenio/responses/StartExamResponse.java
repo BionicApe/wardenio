@@ -64,6 +64,8 @@ public class StartExamResponse {
 
 	private String desktopStreamName;
 
+	private String desktopBucketName;
+
 	private String accessKeyId;
 
 	private String secretAccessKey;
@@ -164,6 +166,18 @@ public class StartExamResponse {
 		this.examTakenId = examTakenId;
 	}
 
+	public String getDesktopBucketName() {
+		return desktopBucketName;
+	}
+
+	public void setDesktopBucketName(String desktopBucketName) {
+		this.desktopBucketName = desktopBucketName;
+	}
+
+	public void setDesktopVideoSettings(VideoSettings desktopVideoSettings) {
+		this.desktopVideoSettings = desktopVideoSettings;
+	}
+
 	public void setValuesFromExamTaken(ExamTaken examTaken) {
 
 		studentName = examTaken.getStudentName();
@@ -175,6 +189,8 @@ public class StartExamResponse {
 		streamName = examTaken.getStreamName();
 
 		desktopStreamName = examTaken.getDesktopStreamName();
+		
+		desktopBucketName = examTaken.getDesktopStreamName();
 
 		examTakenId = examTaken.getId();
 	}

@@ -18,6 +18,7 @@ public class ExamTaken {
 	private String bucketName;
 	private String streamName;
 	private String desktopStreamName;
+	private String desktopBucketName;
 	private Date startDate;
 	private List<DeviceState> deviceStates;
 
@@ -111,6 +112,14 @@ public class ExamTaken {
 
 	public void setDeviceStates(List<DeviceState> deviceStates) {
 		this.deviceStates = deviceStates;
+	}
+
+	public String getDesktopBucketName() {
+		return desktopBucketName;
+	}
+
+	public void setDesktopBucketName(String desktopBucketName) {
+		this.desktopBucketName = desktopBucketName;
 	}
 
 }

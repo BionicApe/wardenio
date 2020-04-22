@@ -34,7 +34,7 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 
 	private static final String SELECT_COMMON = "SELECT id, event_id, access_pin, student_name, bucket_name, stream_name, start_date, student_code, exam_data, " +
 			"desktop_stream_name FROM exam_taken ";
-	private static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(3), desktop_stream_name = ? WHERE id=?";
+	private static final String UPDATE_START_EXAM = "UPDATE exam_taken SET bucket_name = ?, stream_name = ?, start_date = now(3), desktop_stream_name = ? desktop_bucket_name = ? WHERE id=?";
 	private static final String UPDATE_DEVICE_STATE = "UPDATE exam_taken SET device_type = ?, device_model = ?, device_state = ? WHERE id=?";
 	private static final String UPDATE_DESKTOP_STATE = "UPDATE exam_taken SET desktop_type = ?, desktop_model = ?, desktop_state = ? WHERE id= ? ";
 	private static final String UPDATE_INVALIDATE_ALL = "UPDATE exam_taken SET access_pin = NULL WHERE event_id = ? ";
@@ -217,7 +217,8 @@ public class ExamTakenDao implements Dao<ExamTaken> {
 			stmt.setString(1, examTaken.getBucketName());
 			stmt.setString(2, examTaken.getStreamName());
 			stmt.setString(3, examTaken.getDesktopStreamName());
-			stmt.setLong(4, examTaken.getId());
+			stmt.setString(4, examTaken.getDesktopBucketName());
+			stmt.setLong(5, examTaken.getId());
 			stmt.execute();
 			conn.commit();
 

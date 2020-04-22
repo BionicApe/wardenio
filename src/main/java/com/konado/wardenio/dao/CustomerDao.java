@@ -10,7 +10,7 @@ import com.konado.wardenio.model.Customer;
 
 public class CustomerDao implements Dao<Customer> {
 
-	private static final Object FULL_SELECT = "SELECT id, username, password, bucket_name, stream_name, desktop_stream_name FROM customer ";
+	private static final Object FULL_SELECT = "SELECT id, username, password, bucket_name, stream_name, desktop_stream_name, desktop_bucket_name FROM customer ";
 
 	private Customer createFromResultSet(ResultSet rs) throws SQLException {
 		Customer customer = new Customer();
@@ -20,6 +20,7 @@ public class CustomerDao implements Dao<Customer> {
 		customer.setBucketName(rs.getString(4));
 		customer.setStreamName(rs.getString(5));
 		customer.setDesktopStreamName(rs.getString(6));
+		customer.setDesktopBucketName(rs.getString(7));
 		return customer;
 	}
 

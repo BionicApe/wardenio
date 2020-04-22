@@ -14,6 +14,8 @@ public class Customer {
 
 	private String desktopStreamName;
 
+	private String desktopBucketName;
+
 	public Customer() {
 		super();
 	}
@@ -64,6 +66,14 @@ public class Customer {
 
 	public void setDesktopStreamName(String desktopStreamName) {
 		this.desktopStreamName = desktopStreamName;
+	}
+
+	public String getDesktopBucketName() {
+		return desktopBucketName;
+	}
+
+	public void setDesktopBucketName(String desktopBucketName) {
+		this.desktopBucketName = desktopBucketName;
 	}
 
 }

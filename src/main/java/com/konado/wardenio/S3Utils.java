@@ -29,37 +29,45 @@ public class S3Utils {
 		return sb.toString();
 	}
 
-	public static String createAndSetBucket(Customer customer, ExamTaken examTaken) throws Exception {
+	public static void createAndSetBucket(Customer customer, ExamTaken examTaken) throws Exception {
 
 		AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withRegion(REGION).build();
 
-		String bucketName = generateAndTestName(customer, examTaken, s3Client);
+		{
+			String bucketName = generateAndTestName(customer.getBucketName(), examTaken, s3Client);
 
-		// Because the CreateBucketRequest object doesn't specify a region, the
-		// bucket is created in the region specified in the client.
-		s3Client.createBucket(new CreateBucketRequest(bucketName));
+			// Because the CreateBucketRequest object doesn't specify a region, the
+			// bucket is created in the region specified in the client.
+			s3Client.createBucket(new CreateBucketRequest(bucketName));
+			examTaken.setBucketName(bucketName);
+		}
+		{
+			String desktopBucketName = generateAndTestName(customer.getDesktopBucketName(), examTaken, s3Client);
 
-		examTaken.setBucketName(bucketName);
-		
-		return bucketName;
+			// Because the CreateBucketRequest object doesn't specify a region, the
+			// bucket is created in the region specified in the client.
+			s3Client.createBucket(new CreateBucketRequest(desktopBucketName));
+			examTaken.setDesktopBucketName(desktopBucketName);
+		}
 	}
 
-	private static String generateAndTestName(Customer customer, ExamTaken examTaken, AmazonS3 s3Client) {
+	private static String generateAndTestName(String bucketPrefix, ExamTaken examTaken, AmazonS3 s3Client) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(customer.getBucketName());
+		sb.append(bucketPrefix);
 		sb.append("-exam-");
 		sb.append(examTaken.getEventId());
 		sb.append("-");
 		sb.append(examTaken.getId());
 		sb.append("-");
 		sb.append(WardenioStringTools.generateRandomCode(2));
-		String bucketName = sb.toString();//S3 only allows Lower Case
- 
+		String bucketName = sb.toString();// S3 only allows Lower Case
+
 		if (!s3Client.doesBucketExistV2(bucketName)) {
 			return bucketName;
 		}
 
-		return generateAndTestName(customer, examTaken, s3Client);
+		//we call it recursively to try to get a different sufix so the bucket name is unique  
+		return generateAndTestName(bucketPrefix, examTaken, s3Client);
 	}
 
 	public static void putObject(Customer customer, ExamTaken examTaken) throws Exception {
