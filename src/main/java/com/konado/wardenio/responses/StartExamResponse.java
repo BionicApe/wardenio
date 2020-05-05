@@ -51,7 +51,6 @@ public class StartExamResponse {
 		public void setLifespanHours(int lifespanHours) {
 			this.lifespanHours = lifespanHours;
 		}
-
 	}
 
 	private String studentName;
@@ -77,6 +76,8 @@ public class StartExamResponse {
 	private VideoSettings videoSettings = new VideoSettings();
 
 	private VideoSettings desktopVideoSettings = new VideoSettings();
+	
+	private VideoSettings iosVideoSettings = new VideoSettings();
 
 	public String getStudentName() {
 		return studentName;
@@ -193,6 +194,10 @@ public class StartExamResponse {
 		desktopBucketName = examTaken.getDesktopBucketName();
 
 		examTakenId = examTaken.getId();
+		
+		iosVideoSettings.framerate = 9;
+		
+		desktopVideoSettings.framerate= 9;
 	}
 
 }
